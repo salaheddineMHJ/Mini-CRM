@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Projets Terminés</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <div class="container mt-4">
+    <h1 class="mb-4">Projets Terminés</h1>
+    <table id="completedLeadsTable" class="table table-striped">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Email</th>
+          <th>Téléphone</th>
+          <th>Source</th>
+          <th>Statut</th>
+          <th>Rendez-vous</th>
+          <th>Heure</th>
+        </tr>
+      </thead>
+      <tbody id="completedLeadsTableBody">
+        <!-- Les lignes des projets terminés seront ajoutées ici -->
+      </tbody>
+    </table>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+    };
+
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // Vérifier l'état de l'utilisateur
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'login.html';
+      } else {
+        console.log('Utilisateur connecté:', user.email);
+
+        const completedLeadsRef = database.ref('completedLeads');
+        const completedLeadsTableBody = document.getElementById('completedLeadsTableBody');
+        completedLeadsTableBody.innerHTML = '';
+
+        completedLeadsRef.once('value')
+          .then(snapshot => {
+            if (snapshot.exists()) {
+              snapshot.forEach(childSnapshot => {
+                const lead = childSnapshot.val();
+                const leadId = childSnapshot.key;
+                const appointmentDate = lead.date ? new Date(lead.date).toLocaleDateString('fr-FR') : 'Non précisée';
+                const appointmentTime = lead.time || 'Non précisée';
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                  <td>${lead.firstName} ${lead.lastName}</td>
+                  <td>${lead.emailid}</td>
+                  <td>${lead.phone}</td>
+                  <td>${lead.source}</td>
+                  <td>${lead.status}</td>
+                  <td class="date-time">${appointmentDate}</td>
+                  <td class="date-time">${appointmentTime}</td>
+                `;
+                completedLeadsTableBody.appendChild(row);
+              });
+            } else {
+              completedLeadsTableBody.innerHTML = '<tr><td colspan="7">Aucun projet terminé.</td></tr>';
+            }
+          })
+          .catch(error => {
+            console.error('Erreur lors de la récupération des projets terminés:', error);
+          });
+      }
+    });
+    
+  </script>
+    <a href="members.html" class="btn btn-primary mb-4">Retour</a>
+
+</body>
+</html>

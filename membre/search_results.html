@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tableau de Bord</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <div class="container mt-4">
+    <h1 class="mb-4">Tableau de Bord</h1>
+   
+    
+    <!-- Ajout du champ de recherche -->
+    <div class="mb-4">
+      <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par nom, email ou statut">
+    </div>
+
+    <div id="leadsContainer">
+      <h2>Leads Assignés</h2>
+      <table id="leadsTable" class="table table-striped">
+        <thead>
+          <tr>
+            <th>Nom</th>
+            <th>Email</th>
+            <th>Téléphone</th>
+            <th>Source</th>
+            <th>Statut</th>
+            <th>Rendez-vous</th>
+            <th>Heure</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="leadsTableBody">
+          <!-- Les lignes des leads seront ajoutées ici -->
+        </tbody>
+      </table>
+    </div>
+    <div class="d-flex align-items-center">
+      <button id="logoutButton" class="btn btn-danger mt-4">Déconnexion</button>
+      <a id="completedProjectsButton" href="completed_projects.html" class="btn btn-info mt-4 ml-2" style="display: none;">Voir Projets Terminés</a>
+    </div>
+  </div>
+  
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+    };
+
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // Fonction de recherche
+    function filterLeads() {
+      const searchValue = document.getElementById('searchInput').value.toLowerCase();
+      const leadsRows = document.querySelectorAll('#leadsTableBody tr');
+
+      leadsRows.forEach(row => {
+        const cells = row.getElementsByTagName('td');
+        const name = cells[0].textContent.toLowerCase();
+        const email = cells[1].textContent.toLowerCase();
+        const status = cells[4].textContent.toLowerCase();
+
+        if (name.includes(searchValue) || email.includes(searchValue) || status.includes(searchValue)) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    // Ajouter un écouteur d'événement sur le champ de recherche
+    document.getElementById('searchInput').addEventListener('input', filterLeads);
+
+    // Vérifier l'état de l'utilisateur
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = 'login.html';
+      } else {
+        console.log('Utilisateur connecté:', user.email);
+
+        // Récupérer le nom d'utilisateur à partir de l'email
+        const userEmail = user.email.toLowerCase();
+        const membersRef = database.ref('teamMembers');
+        const completedProjectsButton = document.getElementById('completedProjectsButton');
+
+        membersRef.orderByChild('email').equalTo(userEmail).once('value')
+          .then(memberSnapshot => {
+            const leadsRef = database.ref('contactForm');
+            const leadsTableBody = document.getElementById('leadsTableBody');
+            leadsTableBody.innerHTML = '';
+
+            if (userEmail === 'admin@gmail.com') {
+              // Si l'utilisateur est admin, afficher tous les leads et le bouton "Voir Projets Terminés"
+              completedProjectsButton.style.display = 'inline-block'; // Afficher le bouton
+              
+              leadsRef.once('value')
+                .then(leadsSnapshot => {
+                  if (leadsSnapshot.exists()) {
+                    leadsSnapshot.forEach(childSnapshot => {
+                      const lead = childSnapshot.val();
+                      const leadId = childSnapshot.key;
+                      const appointmentDate = lead.date ? new Date(lead.date).toLocaleDateString('fr-FR') : 'Non précisée';
+                      const appointmentTime = lead.time || 'Non précisée';
+
+                      const row = document.createElement('tr');
+                      row.innerHTML = `
+                        <td>${lead.firstName} ${lead.lastName}</td>
+                        <td>${lead.emailid}</td>
+                        <td>${lead.phone}</td>
+                        <td>${lead.source}</td>
+                        <td>${lead.status}</td>
+                        <td class="date-time">${appointmentDate}</td>
+                        <td class="date-time">${appointmentTime}</td>
+                        <td class="d-flex align-items-center">
+                          <button class="btn btn-primary btn-sm mr-2" onclick="notifyClient('${leadId}')" ${lead.status === 'Terminé' ? 'disabled' : ''}>Notifier</button>
+                          <button class="btn btn-secondary btn-sm ml-2" onclick="viewNotifications('${leadId}')" ${lead.status === 'Terminé' ? 'disabled' : ''}>Afficher</button>
+                          ${lead.status !== 'Terminé' ? `<button class="btn btn-warning btn-sm ml-2" onclick="markAsCompleted('${leadId}')">Terminer</button>` : ''}
+                        </td>
+                      `;
+                      leadsTableBody.appendChild(row);
+                    });
+                  } else {
+                    leadsTableBody.innerHTML = '<tr><td colspan="8">Aucun lead.</td></tr>';
+                  }
+                })
+                .catch(error => {
+                  console.error('Erreur lors de la récupération des leads:', error);
+                });
+            } else if (memberSnapshot.exists()) {
+              // Sinon, afficher les leads assignés au membre
+              const memberData = memberSnapshot.val();
+              const memberId = Object.keys(memberData)[0];
+              const memberName = memberData[memberId].name;
+
+              leadsRef.orderByChild('assignedMember').equalTo(memberName).once('value')
+                .then(leadsSnapshot => {
+                  if (leadsSnapshot.exists()) {
+                    leadsSnapshot.forEach(childSnapshot => {
+                      const lead = childSnapshot.val();
+                      const leadId = childSnapshot.key;
+                      const appointmentDate = lead.date ? new Date(lead.date).toLocaleDateString('fr-FR') : 'Non précisée';
+                      const appointmentTime = lead.time || 'Non précisée';
+
+                      const row = document.createElement('tr');
+                      row.innerHTML = `
+                        <td>${lead.firstName} ${lead.lastName}</td>
+                        <td>${lead.emailid}</td>
+                        <td>${lead.phone}</td>
+                        <td>${lead.source}</td>
+                        <td>${lead.status}</td>
+                        <td class="date-time">${appointmentDate}</td>
+                        <td class="date-time">${appointmentTime}</td>
+                        <td class="d-flex align-items-center">
+                          <button class="btn btn-primary btn-sm mr-2" onclick="notifyClient('${leadId}')" ${lead.status === 'Terminé' ? 'disabled' : ''}>Notifier</button>
+                          <button class="btn btn-secondary btn-sm ml-2" onclick="viewNotifications('${leadId}')" ${lead.status === 'Terminé' ? 'disabled' : ''}>Afficher</button>
+                          ${userEmail === 'admin@gmail.com' && lead.status !== 'Terminé' ? `<button class="btn btn-warning btn-sm ml-2" onclick="markAsCompleted('${leadId}')">Terminer</button>` : ''}
+                        </td>
+                      `;
+                      leadsTableBody.appendChild(row);
+                    });
+                  } else {
+                    leadsTableBody.innerHTML = '<tr><td colspan="8">Aucun lead assigné.</td></tr>';
+                  }
+                })
+                .catch(error => {
+                 
+                })
+                .catch(error => {
+                  console.error('Erreur lors de la récupération des leads assignés:', error);
+                });
+            } else {
+              console.log('Utilisateur non trouvé dans teamMembers');
+            }
+          })
+          .catch(error => {
+            console.error('Erreur lors de la récupération des membres:', error);
+          });
+      }
+    });
+
+    // Fonction pour notifier un client
+    function notifyClient(leadId) {
+      window.location.href = `send_notification.html?clientId=${leadId}`;
+    }
+
+    // Fonction pour afficher les notifications d'un client
+    function viewNotifications(leadId) {
+      window.location.href = `view_notifications.html?clientId=${leadId}`;
+    }
+
+    // Fonction pour marquer un lead comme terminé
+    function markAsCompleted(leadId) {
+      const leadRef = database.ref('contactForm').child(leadId);
+      const completedLeadsRef = database.ref('completedLeads').child(leadId);
+
+      leadRef.once('value')
+        .then(snapshot => {
+          const leadData = snapshot.val();
+          return completedLeadsRef.set(leadData); // Copier les données dans 'completedLeads'
+        })
+        .then(() => {
+          leadRef.remove(); // Supprimer le lead de la liste des leads actifs
+          window.location.reload(); // Recharger la page pour mettre à jour l'affichage
+        })
+        .catch(error => {
+          console.error('Erreur lors de la mise à jour du lead:', error);
+        });
+    }
+
+    // Déconnexion
+    document.getElementById('logoutButton').addEventListener('click', () => {
+      auth.signOut().then(() => {
+        window.location.href = 'login.html';
+      }).catch(error => {
+        console.error('Erreur lors de la déconnexion:', error);
+      });
+    });
+  </script>
+</body>
+</html>

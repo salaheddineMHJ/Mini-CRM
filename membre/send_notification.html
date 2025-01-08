@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Envoyer une Notification</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .container {
+      max-width: 600px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4">Envoyer une Notification</h1>
+    <form id="sendNotificationForm">
+      <div class="form-group">
+        <label for="notificationTitle">Titre</label>
+        <input type="text" id="notificationTitle" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="notificationMessage">Message</label>
+        <textarea id="notificationMessage" class="form-control" rows="3" required></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Envoyer</button>
+    </form>
+    <button id="backButton" class="btn btn-secondary mt-3">Retour</button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+    };
+
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // Récupérer le clientId depuis l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientId = urlParams.get('clientId');
+
+    if (!clientId) {
+      alert('Aucun client sélectionné.');
+      window.location.href = 'members.html'; // Redirection vers members.html en cas d'erreur
+    }
+
+    // Fonction d'encodage des adresses e-mail
+    function encodePath(path) {
+      return path.replace(/[.#$[\]]/g, char => `_${char.charCodeAt(0)}`);
+    }
+
+    // Fonction d'envoi de notification
+    document.getElementById('sendNotificationForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const notificationTitle = document.getElementById('notificationTitle').value;
+      const notificationMessage = document.getElementById('notificationMessage').value;
+      const notificationsRef = database.ref(`notifications/${clientId}`);
+      notificationsRef.push({
+        title: notificationTitle,
+        message: notificationMessage,
+        timestamp: Date.now()
+      })
+      .then(() => {
+        alert('Notification envoyée avec succès!');
+        document.getElementById('notificationTitle').value = '';
+        document.getElementById('notificationMessage').value = '';
+      })
+      .catch(error => {
+        console.error('Erreur lors de l\'envoi de la notification:', error);
+      });
+    });
+
+    // Retourner à members.html
+    document.getElementById('backButton').addEventListener('click', () => {
+      window.location.href = 'members.html';
+    });
+  </script>
+</body>
+</html>

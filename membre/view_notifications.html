@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Afficher les Notifications</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .notification {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+      position: relative;
+      max-width: 80%;
+    }
+    .notification.client {
+      background-color: #e1f5fe; /* Couleur différente pour les notifications clients */
+      margin-right: auto;
+      text-align:  left;
+    }
+    .notification.server {
+      background-color: #ffe0b2; /* Couleur différente pour les autres notifications */
+      margin-left: auto;
+      text-align: right;
+    }
+    .notification-content {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background-color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4">Notifications du Client</h1>
+    <div id="notificationsContainer">
+      <!-- Les notifications seront ajoutées ici -->
+    </div>
+    <button id="backButton" class="btn btn-secondary mt-4">Retour</button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+    };
+
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    // Récupérer le clientId depuis l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const clientId = urlParams.get('clientId');
+
+    if (!clientId) {
+      alert('Aucun client sélectionné.');
+      window.location.href = 'members.html'; // Redirection vers members.html en cas d'erreur
+    }
+
+    // Afficher les notifications
+    const notificationsRef = database.ref(`notifications/${clientId}`);
+    notificationsRef.on('value', snapshot => {
+      const notificationsContainer = document.getElementById('notificationsContainer');
+      notificationsContainer.innerHTML = '';
+      if (snapshot.exists()) {
+        snapshot.forEach(childSnapshot => {
+          const notification = childSnapshot.val();
+          const sourceClass = notification.source === 'client' ? 'client' : 'server';
+          const notificationDiv = document.createElement('div');
+          notificationDiv.className = `notification ${sourceClass}`;
+          notificationDiv.innerHTML = `
+            <div class="notification-content">
+              <h4>${notification.title || 'Sans titre'}</h4>
+              <p><strong>Message:</strong> ${notification.message}</p>
+              <small>Date: ${new Date(notification.timestamp).toLocaleDateString('fr-FR')}</small>
+            </div>
+          `;
+          notificationsContainer.appendChild(notificationDiv);
+        });
+      } else {
+        notificationsContainer.innerHTML = '<p>Aucune notification.</p>';
+      }
+    });
+
+    // Retourner à members.html
+    document.getElementById('backButton').addEventListener('click', () => {
+      window.location.href = 'members.html';
+    });
+  </script>
+</body>
+</html>

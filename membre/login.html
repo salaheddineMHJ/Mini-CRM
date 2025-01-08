@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .login-container {
+      max-width: 400px;
+      margin: 5% auto;
+      padding: 2rem;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+    .button-container {
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-container">
+    <h1 class="text-center mb-4">Connexion</h1>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="loginEmail">Email:</label>
+        <input type="email" id="loginEmail" class="form-control" placeholder="Entrez votre email" required>
+      </div>
+      <div class="form-group">
+        <label for="loginPassword">Mot de passe:</label>
+        <input type="password" id="loginPassword" class="form-control" placeholder="Entrez votre mot de passe" required>
+      </div>
+      <div class="button-container">
+        <button type="submit" class="btn btn-primary">Se Connecter</button>
+        <button type="button" id="logoutButton" class="btn btn-danger">Déconnexion</button>
+      </div>
+      <div id="loginError" class="alert alert-danger mt-3 d-none" role="alert"></div>
+    </form>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-config.js"></script> <!-- Assurez-vous que ce fichier contient votre configuration Firebase -->
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+    };
+
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      // Connexion avec Firebase Auth
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          // Connexion réussie
+          window.location.href = 'members.html'; // Redirection vers la page des membres
+        })
+        .catch(error => {
+          const loginError = document.getElementById('loginError');
+          loginError.textContent = error.message;
+          loginError.classList.remove('d-none');
+        });
+    });
+
+    // Déconnexion
+    document.getElementById('logoutButton').addEventListener('click', () => {
+      auth.signOut().then(() => {
+        window.location.href = '../login.html'; // Redirection vers login.html dans le dossier racine
+      });
+    });
+  </script>
+</body>
+</html>
