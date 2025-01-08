@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profil de l'utilisateur</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .container {
+      max-width: 600px;
+      margin-top: 50px;
+    }
+    .notification-item {
+      border-bottom: 1px solid #ddd;
+      padding: 10px;
+    }
+    .notification {
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+      position: relative;
+      max-width: 80%;
+    }
+    .notification.client {
+      background-color: #e1f5fe; /* Couleur différente pour les notifications clients */
+      margin-left: auto;
+      text-align: right;
+    }
+    .notification.admin {
+      background-color: #ffe0b2; /* Couleur différente pour les autres notifications */
+      margin-right: auto;
+      text-align: left;
+    }
+    .notification p {
+      margin: 0;
+    }
+    .notification small {
+      display: block;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center">Profil de l'utilisateur</h1>
+    <div id="userInfo">
+      <p><strong>Nom :</strong> <span id="userName"></span></p>
+      <p><strong>Email :</strong> <span id="userEmail"></span></p>
+      <p><strong>Membre Assigné :</strong> <span id="userAssignedMember"></span></p>
+      <p><strong>Téléphone :</strong> <span id="userPhone"></span></p>
+      <p><strong>Statut :</strong> <span id="userStatus"></span></p>
+      <p><strong>Rendez-vous le :</strong> <span id="userDate"></span> <strong>Heure :</strong> <span id="userTime"></span></p>
+    </div>
+    <button id="logoutButton" class="btn btn-danger">Déconnexion</button>
+    <button id="showNotificationsButton" class="btn btn-info" data-toggle="modal" data-target="#notificationsModal">Afficher les Notifications</button>
+    <button id="showSendNotificationFormButton" class="btn btn-primary" data-toggle="modal" data-target="#sendNotificationFormModal">Envoyer une Notification</button>
+  </div>
+
+  <!-- Modale Notifications -->
+  <div class="modal fade" id="notificationsModal" tabindex="-1" role="dialog" aria-labelledby="notificationsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="notificationsModalLabel">Notifications</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="notificationsList"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modale Formulaire d'envoi de Notification -->
+  <div class="modal fade" id="sendNotificationFormModal" tabindex="-1" role="dialog" aria-labelledby="sendNotificationFormModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="sendNotificationFormModalLabel">Envoyer une Notification</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="sendNotificationForm">
+            <div class="form-group">
+              <label for="notificationTitle">Titre</label>
+              <input type="text" id="notificationTitle" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="notificationMessage">Message</label>
+              <textarea id="notificationMessage" class="form-control" rows="3" required></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Annuler</button>
+          <button type="button" class="btn btn-primary" id="submitNotification">Envoyer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+    };
+
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Fonction pour encoder l'adresse e-mail
+    function encodePath(path) {
+      return path.replace(/[.#$[\]]/g, char => `_${char.charCodeAt(0)}`);
+    }
+
+    // Fonction pour décoder l'adresse e-mail
+    function decodePath(path) {
+      return path.replace(/_(\d+)/g, (match, code) => String.fromCharCode(parseInt(code)));
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Récupérer les informations stockées dans localStorage
+      const userData = JSON.parse(localStorage.getItem('userData'));
+
+      if (userData) {
+        document.getElementById('userName').textContent = `${userData.firstName || ''} ${userData.lastName || ''}`;
+        document.getElementById('userEmail').textContent = userData.emailid || '';
+        document.getElementById('userDate').textContent = userData.date || '';
+        document.getElementById('userAssignedMember').textContent = userData.assignedMember || '';
+        document.getElementById('userPhone').textContent = userData.phone || '';
+        document.getElementById('userStatus').textContent = userData.status || '';
+        document.getElementById('userTime').textContent = userData.time || '';
+      } else {
+        alert('Aucune donnée utilisateur trouvée.');
+        window.location.href = 'index.html'; // Redirige vers la page de connexion si les données ne sont pas disponibles
+      }
+
+      document.getElementById('logoutButton').addEventListener('click', function() {
+        // Effacer les données utilisateur du localStorage
+        localStorage.removeItem('userData');
+        
+        // Rediriger vers la page de connexion
+        window.location.href = 'login.html';
+      });
+
+      document.getElementById('showNotificationsButton').addEventListener('click', function() {
+        const userEmail = userData.emailid;
+        const contactFormRef = database.ref('contactForm');
+        
+        contactFormRef.orderByChild('emailid').equalTo(userEmail).once('value', function(snapshot) {
+          if (snapshot.exists()) {
+            const clientId = Object.keys(snapshot.val())[0];
+            const notificationsRef = database.ref('notifications/' + clientId);
+            
+            notificationsRef.once('value', function(snapshot) {
+              const notificationsList = document.getElementById('notificationsList');
+              notificationsList.innerHTML = ''; // Effacer les anciennes notifications
+              snapshot.forEach(function(childSnapshot) {
+                const notification = childSnapshot.val();
+                const notificationItem = document.createElement('div');
+                
+                // Déterminer la classe en fonction de la source
+                const sourceClass = notification.source === 'client' ? 'notification client' : 'notification admin';
+                
+                notificationItem.className = sourceClass;
+                notificationItem.innerHTML = `
+                  <h4>${notification.title}</h4>
+                  <p><strong>Message:</strong> ${notification.message}</p>
+                  <small>${new Date(notification.timestamp).toLocaleString()}</small>
+                `;
+                notificationsList.appendChild(notificationItem);
+              });
+            });
+          } else {
+            alert('Aucun client trouvé pour cet e-mail.');
+          }
+        });
+      });
+
+      document.getElementById('submitNotification').addEventListener('click', function() {
+        const userEmail = userData.emailid;
+        const contactFormRef = database.ref('contactForm');
+        
+        contactFormRef.orderByChild('emailid').equalTo(userEmail).once('value', function(snapshot) {
+          if (snapshot.exists()) {
+            const clientId = Object.keys(snapshot.val())[0];
+            const notificationsRef = database.ref('notifications/' + clientId);
+            
+            const title = document.getElementById('notificationTitle').value;
+            const message = document.getElementById('notificationMessage').value;
+            const timestamp = Date.now();
+            
+            // Déterminer la source en fonction de l'email
+            let source;
+            if (userEmail.startsWith('admin') || userEmail.startsWith('membre')) {
+              source = userEmail.startsWith('admin') ? 'admin' : 'membre';
+            } else {
+              source = 'client';
+            }
+            
+            notificationsRef.push({
+              title: title,
+              message: message,
+              timestamp: timestamp,
+              source: source
+            }).then(() => {
+              alert('Notification envoyée avec succès!');
+              $('#sendNotificationFormModal').modal('hide');
+              document.getElementById('sendNotificationForm').reset();
+            }).catch(error => {
+              console.error('Erreur lors de l\'envoi de la notification:', error);
+              alert('Erreur lors de l\'envoi de la notification.');
+            });
+          } else {
+            alert('Aucun client trouvé pour cet e-mail.');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

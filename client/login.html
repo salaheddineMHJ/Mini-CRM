@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .container {
+      max-width: 500px;
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="text-center">Connexion</h1>
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" class="form-control" id="email" placeholder="Entrez votre email" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Se connecter</button>
+      <a href="../login.html" style="color: black;" class="btn btn-danger">Déconnexion</a>
+    </form>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+    };
+
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const contactFormRef = database.ref('contactForm');
+
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const email = document.getElementById('email').value;
+
+      // Vérifier si l'email existe dans la base de données
+      contactFormRef.orderByChild('emailid').equalTo(email).once('value')
+        .then(snapshot => {
+          if (snapshot.exists()) {
+            const userData = snapshot.val();
+            const userKey = Object.keys(userData)[0]; // Obtenez la première clé
+
+            // Stocker les informations de l'utilisateur dans localStorage
+            localStorage.setItem('userData', JSON.stringify(userData[userKey]));
+
+            // Rediriger vers la page de profil
+            window.location.href = 'profile.html';
+          } else {
+            alert('Aucun utilisateur trouvé avec cet email.');
+          }
+        })
+        .catch(error => {
+          console.error("Erreur lors de la récupération des données : ", error);
+        });
+    });
+  </script>
+</body>
+</html>
