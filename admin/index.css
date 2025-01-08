@@ -1,0 +1,419 @@
+    
+    /* Réinitialisation des marges et des paddings */
+body, ul {
+  margin: 0;
+  padding: 0;
+}
+
+/* Style général du corps */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Conteneur principal */
+.wrapper {
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Titre principal */
+h1 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+/* Style du tableau */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background-color: #f4f4f4;
+  color: #333;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Style de la liste */
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+ul li strong {
+  font-weight: bold;
+  color: #d4c9c9;
+}
+
+ul li a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+ul li a:hover {
+  text-decoration: underline;
+}
+
+/* Style des liens */
+a {
+  color: #007bff;
+  text-decoration: none;
+  border: 3px solid #ffffff1d;
+  position: relative;
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.25s;
+  backdrop-filter: blur(3px);
+}
+
+a::after {
+  position: absolute;
+  content: "";
+  inset: 0;
+  background: white;
+  scale: 1 0;
+  z-index: -1;
+  transition: 0.45s;
+  border-radius: 10px;
+}
+
+a:hover {
+  color: black;
+}
+
+a:hover::after {
+  scale: 1 1;
+}
+
+/* Style de la navigation */
+nav {
+  background-color: #f8f9fa;
+  padding: 10px 0;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  margin-top: 20px;
+}
+
+.nav-link {
+  color: #007bff;
+  font-weight: bold;
+  margin: 0 15px;
+  font-size: 16px;
+}
+
+.nav-link:hover {
+  color: #0056b3;
+  text-decoration: none;
+}
+
+/* Style du formulaire */
+#createMemberForm {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.form-control {
+  font-size: 0.9rem;
+  padding: 0.75rem;
+}
+
+.btn {
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+}
+
+/* Style de la modale */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1050;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 60px;
+}
+
+.modal-content {
+  background-color: #fff;
+  border: 1px solid #dee2e6;
+  border-radius: 0.3rem;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5);
+  padding: 1rem;
+  width: 80%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.close:hover, .close:focus {
+  color: black;
+  text-decoration: none;
+}
+
+/* Style pour les boutons */
+.btn-custom-warning {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.btn-custom-danger {
+  background-color: #dc3545;
+  color: #ffffff;
+}
+
+.btn-edit, .btn-confirm, .btn-cancel {
+  margin: 0 2px;
+}
+
+/* Style du calendrier */
+.calendar {
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  overflow: hidden;
+}
+
+.calendar-header {
+  background-color: #f8f9fa;
+  padding: 0.5rem;
+  text-align: center;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.calendar-header select {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+}
+
+.calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-top: 1px solid #ddd;
+}
+
+.calendar-day {
+  padding: 1rem;
+  text-align: center;
+  border-right: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  position: relative;
+}
+
+.calendar-day:nth-child(7n) {
+  border-right: none;
+}
+
+.calendar-day:hover {
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+.calendar-day .appointments {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background-color: #ffcccc;
+  border-radius: 0.25rem;
+  padding: 0.2rem;
+  font-size: 0.8rem;
+}
+
+/* Style de la table d'affichage */
+.table td a {
+  display: inline-block;
+  margin-right: 5px;
+  color: #007bff;
+  text-decoration: none;
+}
+
+.table td a:hover {
+  text-decoration: underline;
+}
+
+    
+    
+    /* Styles pour la modale Détails des Rendez-vous */
+.modal {
+  display: none; /* Caché par défaut */
+  position: fixed;
+  z-index: 1050; /* Assure que la modale soit au-dessus de tout autre contenu */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5); /* Fond sombre */
+  display: flex;
+  align-items: center; /* Centrer verticalement */
+  justify-content: center; /* Centrer horizontalement */
+  padding: 20px; /* Espacement autour de la modale */
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  width: 80%;
+  max-width: 500px; /* Limite la largeur de la modale */
+  max-height: 90vh; /* Limite la hauteur de la modale */
+  overflow-y: auto; /* Ajoute une barre de défilement verticale si nécessaire */
+}
+
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+}
+
+/* Style pour les en-têtes et le corps de la modale */
+.modal-header,
+.modal-body {
+  text-align: center; /* Centre le texte */
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem; /* Taille du titre */
+}
+
+/* Optionnel : Styles supplémentaires pour le corps de la modale */
+.modal-body {
+  padding: 10px 0;
+}
+/*******affichage des membre *******/
+body {
+  background-color: #f8f9fa;
+}
+.container {
+  margin-top: 30px;
+}
+.member-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.member-header {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+.lead-item {
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background-color: #f9f9f9;
+}
+.lead-item p {
+  margin: 5px 0;
+}
+.lead-item p strong {
+  color: #333;
+}
+.no-leads {
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+#membersError {
+  color: red;
+  text-align: center;
+}
+.btn-custom-small {
+     
+  background-color: #dc3545; /* Couleur de fond du bouton */
+  
+}
+
+
+/*appointments*/
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+/* Style pour la modale d'historique */
+#historyModal .modal-content {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgb(0,0,0);
+  background-color: rgba(0,0,0,0.4);
+}
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+
+/****nav*****/

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liste des Membres et Leads</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Liste des Membres et Leads</h1>
+    <div id="membersList">
+      <!-- Les membres et leurs leads seront affichés ici -->
+    </div>
+    <div id="membersError" class="text-center text-danger"></div>
+  </div>
+
+  <div class="button-container">
+    <button class="warning" onclick="window.location.href='file.html'">Retour</button>
+    <button onclick="window.location.href='create-member.html'">Créer des membres</button>
+  </div>
+
+  <!-- Scripts Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-config.js"></script>
+
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+    };
+
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const teamRef = database.ref('teamMembers'); // Référence aux membres
+    const contactFormRef = database.ref('contactForm'); // Référence aux leads
+
+    // Fonction pour afficher les membres et leurs leads
+    function displayMembersAndLeads() {
+      teamRef.once('value')
+        .then(teamSnapshot => {
+          const teamMembers = teamSnapshot.val();
+          return contactFormRef.once('value').then(contactSnapshot => {
+            const leads = contactSnapshot.val();
+            return { teamMembers, leads };
+          });
+        })
+        .then(({ teamMembers, leads }) => {
+          const membersList = document.getElementById('membersList');
+          membersList.innerHTML = ''; // Vider la liste existante
+
+          if (teamMembers) {
+            const sortedMembers = Object.keys(teamMembers).sort((a, b) => {
+              return (teamMembers[a].name || '').localeCompare(teamMembers[b].name || '');
+            });
+
+            sortedMembers.forEach(memberId => {
+              const member = teamMembers[memberId];
+              const memberName = member.name || `Membre ${memberId}`;
+
+              // Ignorer le membre "admin"
+              if (memberName.toLowerCase() === 'admine') {
+                return; // Passer à l'itération suivante sans afficher ce membre
+              }
+
+              // Créer une carte pour le membre
+              const memberCard = document.createElement('div');
+              memberCard.className = 'card';
+              memberCard.innerHTML = `
+                <div class="card-header">${memberName}</div>
+                <div class="card-body">
+              `;
+
+              // Filtrer les leads affectés à ce membre
+              let hasLeads = false;
+              let leadsTable = '';
+
+              for (const leadId in leads) {
+                const lead = leads[leadId];
+                if (lead.assignedMember === memberName) {
+                  hasLeads = true;
+                  leadsTable += `
+                    <tr>
+                      <td>${lead.firstName || 'N/A'} ${lead.lastName || 'N/A'}</td>
+                      <td>${lead.emailid || 'N/A'}</td>
+                      <td>${lead.phone || 'N/A'}</td>
+                      <td>${lead.date || 'N/A'}</td>
+                      <td>${lead.time || 'N/A'}</td>
+                      <td>${lead.purpose || 'N/A'}</td>
+                      <td>${lead.status || 'N/A'}</td>
+                      <td>${lead.source || 'N/A'}</td>
+                      <td>${lead.msgContent || 'N/A'}</td>
+                      <td>${lead.hasAppointment ? 'Oui' : 'Non'}</td>
+                    </tr>
+                  `;
+                }
+              }
+
+              if (!hasLeads) {
+                memberCard.innerHTML += '<p class="no-leads">Aucun lead pour ce membre.</p>';
+              } else {
+                memberCard.innerHTML += `
+                  <h5>Leads:</h5>
+                  <table class="lead-table">
+                    <thead>
+                      <tr>
+                        <th>Nom</th>
+                        <th>Email</th>
+                        <th>Téléphone</th>
+                        <th>Date</th>
+                        <th>Heure</th>
+                        <th>But</th>
+                        <th>Status</th>
+                        <th>Source</th>
+                        <th>Message</th>
+                        <th>Rendez-vous</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      ${leadsTable}
+                    </tbody>
+                  </table>
+                `;
+              }
+
+              memberCard.innerHTML += `
+                </div>
+              `;
+              membersList.appendChild(memberCard);
+            });
+          } else {
+            membersList.innerHTML = '<p class="no-leads">Aucun membre trouvé.</p>';
+          }
+        })
+        .catch(error => {
+          console.error("Error fetching data:", error);
+          document.getElementById('membersError').textContent = error.message;
+        });
+    }
+
+    // Appeler la fonction pour afficher les membres et leurs leads au chargement de la page
+    document.addEventListener('DOMContentLoaded', displayMembersAndLeads);
+  </script>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Liste des Leads</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <div class="container mt-4">
+    <h1 class="mb-4">Liste des Leads</h1>
+    <button id="exportCsvButton" class="btn btn-success mb-4">Exporter CSV</button>
+    <button id="exportExcelButton" class="btn btn-primary mb-4">Exporter Excel</button>
+    <button id="addLeadButton" class="btn btn-info mb-4">Ajouter un Lead</button>
+    <button id="importExcelButton" class="btn btn-warning mb-4">Importer Excel</button>
+    <input type="file" id="fileInput" style="display: none;" />
+    <button id="statisticsButton" class="btn btn-info mb-4">nombre des leads</button>
+    <button id="searchButton" class="btn btn-secondary mb-4">trier par statue</button>
+ 
+  
+    <div id="leadForm" class="mb-4">
+      <h3 id="formTitle">Ajouter un Lead</h3>
+      <form id="form">
+        <input type="hidden" id="leadId">
+        <input type="hidden" id="selectedMember">
+        <div class="form-group">
+          <label for="firstName">Prénom</label>
+          <input type="text" class="form-control" id="firstName" required>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Nom</label>
+          <input type="text" class="form-control" id="lastName" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" class="form-control" id="email" required>
+        </div>
+        <div class="form-group">
+          <label for="phone">Téléphone</label>
+          <input type="text" class="form-control" id="phone">
+        </div>
+        <div class="form-group">
+          <label for="source">Source</label>
+          <select id="source" class="form-control" required>
+            <option value="" disabled selected>Sélectionner une source</option>
+            <option value="website">Site web</option>
+            <option value="email">Email</option>
+            <option value="phone">Téléphone</option>
+            <option value="social-media">Réseaux sociaux</option>
+            <option value="other">Autre</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="status">Statut</label>
+          <select id="status" class="form-control" required>
+            <option value="" disabled selected>Sélectionner un statut</option>
+            <option value="en attente">En attente</option>
+            <option value="Confirmé">Confirmé</option>
+            <option value="Annulé">Annulé</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="msgContent">Message</label>
+          <textarea class="form-control" id="msgContent"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="date">Date du Rendez-vous</label>
+          <input type="date" class="form-control" id="date" required>
+        </div>
+        <div class="form-group">
+          <label for="time">Heure du Rendez-vous</label>
+          <input type="time" class="form-control" id="time" required>
+        </div>
+        <div class="form-group">
+          <label for="teamMember">Affectation à un membre de l'équipe</label>
+          <div id="teamMemberButtons">
+            <!-- Les boutons seront ajoutés ici par JavaScript -->
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="button" id="cancelButton" class="btn btn-secondary">Annuler</button>
+      </form>
+    </div>
+
+    <table id="leadsTable" class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          <th>Prénom</th>
+          <th>Nom</th>
+          <th>Email</th>
+          <th>Téléphone</th>
+          <th>Source</th>
+          <th>Statut</th>
+          <th>Message</th>
+          <th>Membre Assigné</th>
+          <th>Date</th>
+          <th>Heure</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="leadsTableBody">
+        <!-- Les lignes de tableau seront ajoutées ici -->
+      </tbody>
+    </table>
+    
+
+    <!-- Conteneur des boutons de filtrage (initialement masqué) -->
+    <div id="filterContainer" class="d-none mb-4">
+      <button id="backButton" class="btn btn-light">Retour</button>
+      <button id="filterPendingButton" class="btn btn-warning">En attente</button>
+      <button id="filterConfirmedButton" class="btn btn-success">Confirmé</button>
+      <button id="filterCancelledButton" class="btn btn-danger">Annulé</button>
+    </div>
+
+    <!-- Modale pour afficher les statistiques -->
+    <div class="modal fade" id="statisticsModal" tabindex="-1" role="dialog" aria-labelledby="statisticsModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="statisticsModalLabel">Statistiques des Leads</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <p id="lead-count">Chargement...</p>
+            <p id="pendingCount">En attente: 0</p>
+            <p id="confirmedCount">Confirmé: 0</p>
+            <p id="resolvedCount">Annulé: 0</p>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script JS -->
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="admin.js"></script>
+  <nav class="mt-4">
+    <ul class="nav justify-content-center">
+      <li>
+        <a href="../login.html" style="color: black;" class="btn btn-danger">Déconnexion</a>
+      </li>
+      <li class="nav-item">
+        <a href="file.html" class="nav-link">Gestion des leads</a>
+      </li>
+      <li class="nav-item">
+        <a href="Calendrier.html" class="nav-link">Calendrier</a>
+      </li>
+      <li class="nav-item">
+        <a href="appointments.html" class="nav-link">Rendez-vous</a>
+      </li>
+      <li class="nav-item">
+        <a href="Search.html" class="nav-link">Chercher</a>
+      </li>
+      <li>
+        <button id="initialButton" class="btn btn-primary" data-toggle="modal" data-target="#optionsModal">
+          Statistiques
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="modal fade" id="optionsModal" tabindex="-1" role="dialog" aria-labelledby="optionsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="optionsModalLabel">Options</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <a href="statistique.html" class="btn btn-warning">Statistiques des statues</a>
+          <a href="statistique_projet.html" class="btn btn-success">Statistiques des Projets </a>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

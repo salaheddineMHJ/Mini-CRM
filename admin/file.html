@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leads List</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="admin.css">
+  
+  <style>
+  
+  </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <div class="container mt-4">
+    <h1 class="mb-4">Liste des Leads</h1>
+    <button id="exportExcelButton" class="btn btn-primary mb-4">Exporter Excel</button>
+    <button id="addLeadButton" class="btn btn-info mb-4">Ajouter un Lead</button>
+    
+    <input type="file" id="fileInput" style="display: none;" />
+    <button id="statisticsButton" class="btn btn-success mb-4">Nombre des leads</button>
+      <!--  champ de recherche -->
+      <div class="mb-4">
+        <input type="text" id="searchInput" class="form-control" placeholder="Rechercher par nom, email ou statut">
+      </div>
+    <div id="leadForm" class="mb-4">
+      <h3 id="formTitle">Ajouter un Lead</h3>
+      <form id="form">
+        <input type="hidden" id="leadId">
+        <input type="hidden" id="selectedMember">
+        <div class="form-group">
+          <label for="firstName">Prénom</label>
+          <input type="text" class="form-control" id="firstName" required>
+        </div>
+        <div class="form-group">
+          <label for="lastName">Nom</label>
+          <input type="text" class="form-control" id="lastName" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" class="form-control" id="email" required>
+        </div>
+        <div class="form-group">
+          <label for="phone">Téléphone</label>
+          <input type="text" class="form-control" id="phone">
+        </div>
+        <div class="form-group">
+          <label for="source">Source</label>
+          <select id="source" class="form-control">
+              <option value="" disabled selected>Select a source</option>
+              <option value="website">Website</option>
+              <option value="email">Email</option>
+              <option value="phone">Phone</option>
+              <option value="social-media">Social Media</option>
+              <option value="other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" class="form-control" required>
+            <option value="" disabled selected>Select status</option>
+            <option value="en attente">en attente</option>
+            <option value="Confirmé">Confirmé</option>
+            <option value="resolved">Annulé</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="msgContent">Message</label>
+          <textarea class="form-control" id="msgContent"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="teamMember">Affectation à un membre de l'équipe</label>
+          <div id="teamMemberButtons">
+            <!-- Les boutons seront ajoutés ici par JavaScript -->
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="button" id="cancelButton" class="btn btn-secondary">Annuler</button>
+      </form>
+    </div>
+
+    <table id="leadsTable" class="table table-striped table-bordered">
+      <thead>
+        <tr>
+          
+          <th>Prénom</th>
+          <th>Nom</th>
+          <th>Email</th>
+          <th>Téléphone</th>
+          <th>Source</th>
+          <th>Status</th>
+          <th>Message</th>
+          <th>Membre Assigné</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="leadsTableBody">
+        <!-- Les lignes de tableau seront ajoutées ici -->
+      </tbody>
+    </table>
+
+    <p id="lead-count">Loading...</p>
+    
+    <nav class="mt-4">
+      <ul class="nav">
+        <li><a href="appointments.html" class="nav-link">Rendez-vous</a></li>
+        <li><a href="Search.html" class="nav-link">Recherche</a></li>
+        <li><a href="admin.html" class="nav-link">D'étails des leads</a></li>
+        <li><a href="Calendrier.html" class="nav-link">Calendrier</a></li>
+        <li><a href="membre.html" class="nav-link">Afficher les membres</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Modale pour afficher les statistiques -->
+  <div class="modal fade" id="statisticsModal" tabindex="-1" role="dialog" aria-labelledby="statisticsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="statisticsModalLabel">Statistiques des Leads</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p id="pendingCount">En attente: 0</p>
+          <p id="confirmedCount">Confirmé: 0</p>
+          <p id="resolvedCount">Annulé: 0</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+ 
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+    };
+  
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    const leadsRef = database.ref('contactForm');
+    const teamRef = database.ref('teamMembers');
+  
+    const leadsTableBody = document.getElementById('leadsTableBody');
+    const leadForm = document.getElementById('leadForm');
+    const formTitle = document.getElementById('formTitle');
+    const form = document.getElementById('form');
+    const leadIdInput = document.getElementById('leadId');
+    const teamMemberButtonsDiv = document.getElementById('teamMemberButtons');
+  
+    function createTeamMemberButtons(members) {
+      teamMemberButtonsDiv.innerHTML = '';
+      members.forEach(member => {
+        if (member.email === 'admin@gmail.com') return;
+        const button = document.createElement('button');
+        button.className = 'btn btn-warning btn-sm mr-2';
+        button.textContent = member.name;
+        button.onclick = () => selectTeamMember(member.name);
+        teamMemberButtonsDiv.appendChild(button);
+      });
+    }
+  
+    function selectTeamMember(memberName) {
+      document.getElementById('selectedMember').value = memberName;
+    }
+  
+    // Lire les membres de l'équipe depuis Firebase
+    teamRef.once('value')
+      .then(snapshot => {
+        const members = [];
+        snapshot.forEach(childSnapshot => {
+          const memberData = childSnapshot.val();
+          members.push(memberData);
+        });
+        createTeamMemberButtons(members);
+      })
+      .catch(error => {
+        console.error("Erreur lors de la récupération des membres : ", error);
+      });
+  
+    function renderTable() {
+      leadsRef.on('value', snapshot => {
+        leadsTableBody.innerHTML = '';
+        snapshot.forEach(childSnapshot => {
+          const leadKey = childSnapshot.key;
+          const leadData = childSnapshot.val();
+  
+          const leadRow = document.createElement('tr');
+          leadRow.innerHTML = `
+           
+            <td>${leadData.firstName || 'N/A'}</td>
+            <td>${leadData.lastName || 'N/A'}</td>
+            <td>${leadData.emailid || 'N/A'}</td>
+            <td>${leadData.phone || 'N/A'}</td>
+            <td>${leadData.source || 'N/A'}</td>
+            <td>${leadData.status || 'N/A'}</td>
+            <td>${leadData.msgContent || 'N/A'}</td>
+            <td>${leadData.assignedMember || 'N/A'}</td>
+            <td class="d-flex align-items-center">
+              <button class="btn btn-warning btn-sm mr-2" onclick="editLead('${leadKey}')">Modifier</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteLead('${leadKey}')">Supprimer</button>
+            </td>
+          `;
+          leadsTableBody.appendChild(leadRow);
+        });
+        updateLeadCount();
+      });
+    }
+  
+    function updateLeadCount() {
+      leadsRef.once('value', snapshot => {
+        const count = snapshot.numChildren();
+        document.getElementById('lead-count').textContent = `Nombre de leads: ${count}`;
+      });
+    }
+  
+    function editLead(leadId) {
+      leadsRef.child(leadId).once('value')
+        .then(snapshot => {
+          const leadData = snapshot.val();
+          document.getElementById('leadId').value = leadId;
+          document.getElementById('firstName').value = leadData.firstName || '';
+          document.getElementById('lastName').value = leadData.lastName || '';
+          document.getElementById('email').value = leadData.emailid || '';
+          document.getElementById('phone').value = leadData.phone || '';
+          document.getElementById('source').value = leadData.source || '';
+          document.getElementById('status').value = leadData.status || '';
+          document.getElementById('msgContent').value = leadData.msgContent || '';
+          document.getElementById('selectedMember').value = leadData.assignedMember || '';
+          formTitle.textContent = 'Modifier un Lead';
+          leadForm.style.display = 'block';
+        });
+    }
+  
+    function deleteLead(leadId) {
+      if (confirm('Êtes-vous sûr de vouloir supprimer ce lead ?')) {
+        leadsRef.child(leadId).remove()
+          .then(() => {
+            alert('Lead supprimé.');
+          })
+          .catch(error => {
+            console.error("Erreur lors de la suppression du lead : ", error);
+          });
+      }
+    }
+  
+   // Fonction pour vérifier si l'email existe déjà
+function checkEmailExists(email) {
+  return leadsRef.orderByChild('emailid').equalTo(email).once('value')
+    .then(snapshot => snapshot.exists());
+}
+
+// Fonction de gestion du formulaire
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const leadId = leadIdInput.value;
+  const email = document.getElementById('email').value;
+  
+  // Vérifier si l'email existe déjà
+  if (!leadId && await checkEmailExists(email)) {
+    alert('Ce email existe déjà.');
+    return;
+  }
+
+  const leadData = {
+    firstName: document.getElementById('firstName').value,
+    lastName: document.getElementById('lastName').value,
+    emailid: email,
+    phone: document.getElementById('phone').value,
+    source: document.getElementById('source').value,
+    status: document.getElementById('status').value,
+    msgContent: document.getElementById('msgContent').value,
+    assignedMember: document.getElementById('selectedMember').value
+  };
+
+  if (leadId) {
+    leadsRef.child(leadId).update(leadData)
+      .then(() => {
+        alert('Lead mis à jour.');
+        leadForm.style.display = 'none';
+      })
+      .catch(error => {
+        console.error("Erreur lors de la mise à jour du lead : ", error);
+      });
+  } else {
+    leadsRef.push(leadData)
+      .then(() => {
+        alert('Lead ajouté.');
+        leadForm.style.display = 'none';
+      })
+      .catch(error => {
+        console.error("Erreur lors de l\'ajout du lead : ", error);
+      });
+  }
+});
+
+
+    document.getElementById('cancelButton').addEventListener('click', () => {
+      leadForm.style.display = 'none';
+    });
+  
+    document.getElementById('addLeadButton').addEventListener('click', () => {
+      leadForm.style.display = 'block';
+      formTitle.textContent = 'Ajouter un Lead';
+      form.reset();
+      document.getElementById('leadId').value = '';
+    });
+  
+
+    document.getElementById('exportExcelButton').addEventListener('click', () => {
+    leadsRef.once('value', snapshot => {
+        const data = [];
+        snapshot.forEach(childSnapshot => {
+            const leadData = childSnapshot.val();
+            data.push({
+                ID: childSnapshot.key,
+                Prénom: leadData.firstName || '',
+                Nom: leadData.lastName || '',
+                Email: leadData.emailid || '',
+                Téléphone: leadData.phone || '',
+                Source: leadData.source || '',
+                Status: leadData.status || '',
+                Message: leadData.msgContent || '',
+                'Affectation à un membre de l\'équipe': leadData.assignedMember || ''
+            });
+        });
+
+        // Convert data to worksheet
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, 'Leads');
+
+        // Create a Blob and trigger a download
+        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'binary' });
+        const blob = new Blob([s2ab(wbout)], { type: 'application/octet-stream' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'leads.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+});
+
+// Helper function to convert a string to an ArrayBuffer
+function s2ab(s) {
+    const buf = new ArrayBuffer(s.length);
+    const view = new Uint8Array(buf);
+    for (let i = 0; i < s.length; i++) {
+        view[i] = s.charCodeAt(i) & 0xFF;
+    }
+    return buf;
+}
+
+    document.getElementById('statisticsButton').addEventListener('click', () => {
+      $('#statisticsModal').modal('show');
+      leadsRef.once('value', snapshot => {
+        let pendingCount = 0, confirmedCount = 0, resolvedCount = 0;
+        snapshot.forEach(childSnapshot => {
+          const leadData = childSnapshot.val();
+          if (leadData.status === 'en attente') pendingCount++;
+          if (leadData.status === 'Confirmé') confirmedCount++;
+          if (leadData.status === 'Annulé') resolvedCount++;
+        });
+  
+        document.getElementById('pendingCount').textContent = `En attente: ${pendingCount}`;
+        document.getElementById('confirmedCount').textContent = `Confirmé: ${confirmedCount}`;
+        document.getElementById('resolvedCount').textContent = `Annulé: ${resolvedCount}`;
+      });
+    });
+  
+// Fonction de recherche
+function filterLeads() {
+  const searchValue = document.getElementById('searchInput').value.toLowerCase();
+  const leadsRows = document.querySelectorAll('#leadsTableBody tr');
+
+  leadsRows.forEach(row => {
+    const cells = row.getElementsByTagName('td');
+    const firstName = cells[0].textContent.toLowerCase();
+    const lastName = cells[1].textContent.toLowerCase();
+    const email = cells[2].textContent.toLowerCase();
+    const status = cells[5].textContent.toLowerCase();
+
+    if (firstName.includes(searchValue) || lastName.includes(searchValue) || email.includes(searchValue) || status.includes(searchValue)) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+// Ajouter un écouteur d'événement sur le champ de recherche
+document.getElementById('searchInput').addEventListener('input', filterLeads);
+
+
+    renderTable();
+  </script>
+  
+
+</body>
+</html>

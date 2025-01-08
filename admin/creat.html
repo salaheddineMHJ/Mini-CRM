@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body class="d-flex justify-content-center align-items-center vh-100">
+  <div class="container">
+    <h1 class="mb-4 text-center">Create an Account</h1>
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Register</button>
+      <div id="registerError" class="mt-3 text-danger"></div>
+    </form>
+    <div class="mt-4 text-center">
+      <a href="login.html">Already have an account? Login here.</a>
+    </div>
+  </div>
+
+  <!-- Include Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-config.js"></script> <!-- Assurez-vous que ce fichier contient votre configuration Firebase -->
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const database = firebase.database();
+
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const name = document.getElementById('name').value;
+
+      // Create a new user with Firebase Auth
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          // User created successfully
+          const user = userCredential.user;
+          const userId = user.uid;
+
+          // Save additional user info to the database
+          database.ref('teamMembers/' + userId).set({
+            name: name,
+            email: email
+          }).then(() => {
+            alert('Account created successfully!');
+            window.location.href = 'login.html'; // Redirect to login page
+          }).catch(error => {
+            document.getElementById('registerError').textContent = error.message;
+          });
+        })
+        .catch(error => {
+          document.getElementById('registerError').textContent = error.message;
+        });
+    });
+  </script>
+  <nav class="mt-4">
+    <ul class="nav justify-content-center">
+</body>
+</html>

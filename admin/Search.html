@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recherche des Leads</title>
+    <link rel="stylesheet" href="index.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js"></script>
+    <!-- Firebase Database -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js"></script>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Recherche de Leads</h1>
+        <div class="form-group">
+            <input type="text" id="nameInput" class="form-control" placeholder="Entrez le prénom du lead">
+        </div>
+
+        <div class="form-group">
+            <select id="sourceInput" class="form-control">
+                <option value="">Choisir la source</option>
+                <option value="Website">Website</option>
+                <option value="Social Media">Social Media</option>
+                <option value="Other">Other</option>
+                <option value="Social-Media">Social-Media</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <select id="statusInput" class="form-control">
+                <option value="">Choisir le statut</option>
+                <option value="En attente">En attente</option>
+                <option value="Confirmé">Confirmé</option>
+                <option value="Annulé">Annulé</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <select id="sortByInput" class="form-control">
+                <option value="firstName">Trier par prénom</option>
+                <option value="lastName">Trier par nom</option>
+                <option value="source">Trier par source</option>
+                <option value="date">Trier par date de rendez Rendez-vous</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <select id="sortOrderInput" class="form-control">
+                <option value="asc">Ordre croissant</option>
+                <option value="desc">Ordre décroissant</option>
+            </select>
+        </div>
+
+        <button onclick="searchLeads()" class="btn btn-primary">Rechercher</button>
+
+        <div id="results" class="mt-4"></div>
+
+        <nav class="mt-4">
+            <ul class="nav">
+                <a href="file.html" class="nav-link">Gestion des leads</a>
+                <a href="appointments.html" class="nav-link">Rendez-vous</a>
+                <a href="admin.html" class="nav-link">Liste des leads</a>
+                <a href="Calendrier.html" class="nav-link">Calendrier</a>
+                
+            </ul>
+        </nav>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-app.js";
+        import { getDatabase, ref, query, orderByChild, equalTo, get } from "https://www.gstatic.com/firebasejs/9.6.7/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+            authDomain: "leads-3892c.firebaseapp.com",
+            databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+            projectId: "leads-3892c",
+            storageBucket: "leads-3892c.appspot.com",
+            messagingSenderId: "1086480345958",
+            appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        async function searchLeads() {
+            const firstName = document.getElementById('nameInput').value.trim();
+            const source = document.getElementById('sourceInput').value.trim();
+            const status = document.getElementById('statusInput').value.trim();
+            const sortBy = document.getElementById('sortByInput').value;
+            const sortOrder = document.getElementById('sortOrderInput').value;
+
+            if (!firstName && !source && !status) {
+                alert("Veuillez entrer un prénom ou sélectionner une source ou un statut.");
+                return;
+            }
+
+            const leadsRef = ref(database, 'contactForm');
+            let leadsQuery = query(leadsRef);
+
+            try {
+                const snapshot = await get(leadsQuery);
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = '';
+
+                const table = document.createElement('table');
+                table.className = 'table table-striped'; // Bootstrap table classes
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Prénom</th>
+                            <th>Nom</th>
+                            <th>Email</th>
+                            <th>Heure</th>
+                            <th>Date</th>
+                            <th>But</th>
+                            <th>Source</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leadsTableBody">
+                    </tbody>
+                `;
+                resultsDiv.appendChild(table);
+
+                const tableBody = document.getElementById('leadsTableBody');
+                const leads = [];
+
+                if (snapshot.exists()) {
+                    snapshot.forEach(childSnapshot => {
+                        const lead = childSnapshot.val();
+                        leads.push({ key: childSnapshot.key, ...lead });
+                    });
+
+                    const filteredLeads = leads.filter(lead => {
+                        return (!firstName || lead.firstName?.toLowerCase().startsWith(firstName.toLowerCase())) &&
+                               (!source || lead.source?.toLowerCase() === source.toLowerCase()) &&
+                               (!status || lead.status?.toLowerCase() === status.toLowerCase());
+                    });
+
+                    filteredLeads.sort((a, b) => {
+                        let comparison = 0;
+                        if (sortBy === 'date') {
+                            const dateA = new Date(a.date);
+                            const dateB = new Date(b.date);
+                            comparison = dateA - dateB;
+                        } else if (sortBy === 'firstName' || sortBy === 'lastName' || sortBy === 'source') {
+                            if (a[sortBy] < b[sortBy]) {
+                                comparison = -1;
+                            } else if (a[sortBy] > b[sortBy]) {
+                                comparison = 1;
+                            }
+                        }
+                        return sortOrder === 'desc' ? comparison * -1 : comparison;
+                    });
+
+                    if (filteredLeads.length === 0) {
+                        resultsDiv.innerHTML = 'Aucun lead trouvé.';
+                    } else {
+                        filteredLeads.forEach(lead => {
+                            const leadRow = document.createElement('tr');
+                            leadRow.innerHTML = `
+                                <td>${lead.key}</td>
+                                <td>${lead.firstName || 'N/A'}</td>
+                                <td>${lead.lastName || 'N/A'}</td>
+                                <td>${lead.emailid || 'N/A'}</td>
+                                <td>${lead.time || 'N/A'}</td>
+                                <td>${lead.date || 'N/A'}</td>
+                                <td>${lead.purpose || 'N/A'}</td>
+                                <td>${lead.source || 'N/A'}</td>
+                                <td>${lead.status || 'N/A'}</td>
+                            `;
+                            tableBody.appendChild(leadRow);
+                        });
+                    }
+                } else {
+                    resultsDiv.innerHTML = 'Aucun lead trouvé.';
+                }
+            } catch (error) {
+                console.error('Erreur lors de la recherche des leads:', error);
+                alert('Erreur lors de la recherche des leads. Consultez la console pour plus de détails.');
+            }
+        }
+
+        window.searchLeads = searchLeads;
+    </script>
+</body>
+</html>

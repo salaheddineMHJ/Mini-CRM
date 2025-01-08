@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendrier avec Rendez-vous</title>
+    
+    <link rel="stylesheet" href="index.css">
+  <!-- Include Bootstrap CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<style>/* Style de base pour les modales */
+    .modal {
+        display: none; /* Cachée par défaut */
+        position: fixed; /* Fixée à l'écran */
+        top: 0; /* Alignée en haut de la page */
+        left: 0;
+        width: 100%; /* Prend toute la largeur */
+        height: 100%; /* Prend toute la hauteur */
+        overflow: auto; /* Permet de faire défiler le contenu si nécessaire */
+        background-color: rgba(0, 0, 0, 0.4); /* Fond semi-transparent */
+        z-index: 1000; /* Assure que la modale est au-dessus des autres éléments */
+    }
+    
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto; /* Centre horizontalement et aligne verticalement */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%; /* Largeur de la modale, ajustez selon vos besoins */
+        max-height: 80%; /* Hauteur maximale de la modale */
+        overflow-y: auto; /* Permet le défilement vertical */
+        display: flex;
+        flex-direction: column; /* Colonne pour aligner le contenu */
+    }
+    
+    .modal-body {
+        flex: 1; /* Prend tout l'espace disponible sauf celui occupé par les boutons */
+    }
+    
+    .modal-footer {
+        display: flex;
+        justify-content: flex-end; /* Aligne les boutons à droite */
+        margin-top: 20px; /* Espacement au-dessus des boutons */
+    }
+    
+    .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+    
+    .close:hover,
+    .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    </style>
+
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="mb-4">Calendrier </h1>
+        <div class="calendar">
+            <div class="calendar-header">
+                <div id="monthYear"></div>
+                <select id="monthSelect" class="custom-select d-inline-block w-auto">
+                    <option value="0">Janvier</option>
+                    <option value="1">Février</option>
+                    <option value="2">Mars</option>
+                    <option value="3">Avril</option>
+                    <option value="4">Mai</option>
+                    <option value="5">Juin</option>
+                    <option value="6">Juillet</option>
+                    <option value="7">Août</option>
+                    <option value="8">Septembre</option>
+                    <option value="9">Octobre</option>
+                    <option value="10">Novembre</option>
+                    <option value="11">Décembre</option>
+                </select>
+                <select id="yearSelect" class="custom-select d-inline-block w-auto">
+                    <option value="2023">2023</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                    <option value="2028">2028</option>
+                    <option value="2029">2029</option>
+                    <option value="2030">2030</option>
+                </select>
+            </div>
+            <div class="calendar-days" id="calendarDays">
+                <!-- Les jours seront générés ici -->
+            </div>
+        </div>
+    </div>
+<!-- Modale pour afficher les détails des rendez-vous -->
+<div id="detailsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeDetails">&times;</span>
+        <h2>Détails des Rendez-vous</h2>
+        <div class="modal-body" id="detailsContainer"></div>
+        <div class="modal-footer">
+            <!-- Les boutons peuvent aller ici si besoin -->
+        </div>
+    </div>
+</div>
+
+<!-- Modale pour éditer un rendez-vous -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <span class="close" id="closeEdit">&times;</span>
+        <h2>Modifier le rendez-vous</h2>
+        <div class="modal-body">
+            <form id="editForm">
+                <input type="hidden" id="editLeadKey">
+                <label for="editEmail">Email:</label>
+                <input type="email" id="editEmail" required><br><br>
+                <label for="editTime">Heure:</label>
+                <input type="time" id="editTime" required><br><br>
+                <label for="editDate">Date:</label>
+                <input type="date" id="editDate" required><br><br>
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </form>
+        </div>
+        
+    </div>
+</div>
+
+   
+    <nav class="mt-4">
+        <ul class="nav justify-content-center">
+           
+            <li class="nav-item">
+                <a href="file.html" class="nav-link">Gestion des leads</a>
+            </li>
+            <li class="nav-item">
+                <a href="appointments.html" class="nav-link">Rendez-vous</a>
+            </li>
+            <li class="nav-item">
+                <a href="admin.html" class="nav-link">Détails des leads</a>
+            </li>
+            <li class="nav-item">
+                <a href="Search.html" class="nav-link">Chercher</a>
+            </li>
+        </ul>
+    </nav>
+    
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+
+    <script>
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+            authDomain: "leads-3892c.firebaseapp.com",
+            databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+            projectId: "leads-3892c",
+            storageBucket: "leads-3892c.appspot.com",
+            messagingSenderId: "1086480345958",
+            appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const leadsRef = database.ref('contactForm');
+    
+        const monthSelect = document.getElementById('monthSelect');
+        const yearSelect = document.getElementById('yearSelect');
+        const monthYear = document.getElementById('monthYear');
+        const calendarDays = document.getElementById('calendarDays');
+        const detailsModal = document.getElementById('detailsModal');
+        const closeDetails = document.getElementById('closeDetails');
+        const detailsContainer = document.getElementById('detailsContainer');
+    
+        function generateCalendar(month, year, appointments = {}) {
+            const daysOfWeek = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+    
+            let calendarHTML = daysOfWeek.map(day => `<div class="calendar-day">${day}</div>`).join('');
+            const emptyDays = Array.from({ length: firstDay }, () => `<div class="calendar-day empty"></div>`).join('');
+            const days = Array.from({ length: lastDate }, (_, i) => {
+                const day = i + 1;
+                const key = `${year}-${month + 1}-${day}`;
+                const appts = appointments[key] || [];
+                return `<div class="calendar-day" onclick="showDetailsModal('${key}')">
+                            ${day}
+                            ${appts.length > 0 ? `<div class="appointments">${appts.length} appt(s)</div>` : ''}
+                        </div>`;
+            }).join('');
+    
+            calendarDays.innerHTML = calendarHTML + emptyDays + days;
+            monthYear.textContent = `${monthSelect.options[month].text} ${year}`;
+        }
+    
+        function showDetailsModal(dateKey) {
+            detailsContainer.innerHTML = '<p>Chargement des rendez-vous...</p>';
+            detailsModal.style.display = 'block';
+    
+            leadsRef.once('value').then(snapshot => {
+                const appointments = {};
+                snapshot.forEach(childSnapshot => {
+                    const leadData = childSnapshot.val();
+                    const leadDate = new Date(leadData.date);
+                    const key = `${leadDate.getFullYear()}-${leadDate.getMonth() + 1}-${leadDate.getDate()}`;
+                    if (!appointments[key]) appointments[key] = [];
+                    appointments[key].push({ key: childSnapshot.key, ...leadData });
+                });
+    
+                const appts = appointments[dateKey] || [];
+                if (appts.length === 0) {
+                    detailsContainer.innerHTML = '<p>Aucun rendez-vous pour ce jour.</p>';
+                } else {
+                    detailsContainer.innerHTML = appts.map(appt => `
+                        <div class="appointment-detail">
+                            <p><strong>Prénom:</strong> ${appt.firstName || 'Non défini'}</p>
+                            <p><strong>Nom:</strong> ${appt.lastName || 'Non défini'}</p>
+                            <p><strong>Email:</strong> ${appt.emailid}</p>
+                            <p><strong>Heure:</strong> ${appt.time}</p>
+                            <p><strong>Date:</strong> ${appt.date}</p>
+                            <button onclick="editAppointment('${appt.key}')" class="btn btn-warning">Modifier</button>
+                            <button onclick="deleteAppointment('${appt.key}')" class="btn btn-danger">Supprimer</button>
+                            <hr>
+                        </div>
+                    `).join('');
+                }
+            });
+        }
+    
+        function editAppointment(leadKey) {
+            const editModal = document.getElementById('editModal');
+            const closeEdit = document.getElementById('closeEdit');
+            const editForm = document.getElementById('editForm');
+    
+            editModal.style.display = 'block';
+    
+            leadsRef.child(leadKey).once('value').then(snapshot => {
+                const leadData = snapshot.val();
+                document.getElementById('editLeadKey').value = leadKey;
+                document.getElementById('editEmail').value = leadData.emailid;
+                document.getElementById('editTime').value = leadData.time;
+                document.getElementById('editDate').value = leadData.date;
+               
+            });
+    
+            editForm.onsubmit = function(event) {
+                event.preventDefault();
+                const leadKey = document.getElementById('editLeadKey').value;
+                const updatedData = {
+                    emailid: document.getElementById('editEmail').value,
+                    time: document.getElementById('editTime').value,
+                    date: document.getElementById('editDate').value,
+                   
+                };
+                leadsRef.child(leadKey).update(updatedData).then(() => {
+                    updateHistory(leadKey, 'Modifié');
+                    editModal.style.display = 'none';
+                    updateCalendar();
+                });
+            }
+    
+            closeEdit.onclick = () => { editModal.style.display = 'none'; };
+            window.onclick = event => { if (event.target === editModal) editModal.style.display = 'none'; };
+        }
+    
+        function updateHistory(leadKey, action) {
+            leadsRef.child(leadKey).once('value').then(snapshot => {
+                const leadData = snapshot.val();
+                const history = leadData.history || [];
+                history.push({ action, timestamp: new Date().toISOString() });
+                leadsRef.child(leadKey).update({ history });
+            });
+        }
+    
+        function deleteAppointment(leadKey) {
+            if (confirm('Êtes-vous sûr de vouloir annuler ce rendez-vous ?')) {
+                updateHistory(leadKey, 'Annulé');
+                leadsRef.child(leadKey).remove().then(() => {
+                    detailsModal.style.display = 'none';
+                    updateCalendar();
+                });
+            }
+        }
+    
+        function updateCalendar() {
+    const month = parseInt(monthSelect.value, 10);
+    const year = parseInt(yearSelect.value, 10);
+
+    leadsRef.once('value').then(snapshot => {
+        const appointments = {};
+
+        snapshot.forEach(childSnapshot => {
+            const data = childSnapshot.val();
+            if (data.status !== 'Annulé') { // Exclure les rendez-vous annulés
+                const date = new Date(data.date);
+                const key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+                if (!appointments[key]) appointments[key] = [];
+                appointments[key].push({ key: childSnapshot.key, ...data });
+            }
+        });
+
+        generateCalendar(month, year, appointments);
+    });
+}
+
+
+        // Initialisation
+        const today = new Date();
+        monthSelect.value = today.getMonth();
+        yearSelect.value = today.getFullYear();
+        updateCalendar();
+    
+        monthSelect.addEventListener('change', updateCalendar);
+        yearSelect.addEventListener('change', updateCalendar);
+    
+        closeDetails.onclick = () => { detailsModal.style.display = 'none'; };
+        window.onclick = event => { if (event.target === detailsModal) detailsModal.style.display = 'none'; };
+    
+        function editAppointment(leadKey) {
+    const editModal = document.getElementById('editModal');
+    const closeEdit = document.getElementById('closeEdit');
+    const editForm = document.getElementById('editForm');
+
+    editModal.style.display = 'block';
+
+    leadsRef.child(leadKey).once('value').then(snapshot => {
+        const leadData = snapshot.val();
+        document.getElementById('editLeadKey').value = leadKey;
+        document.getElementById('editEmail').value = leadData.emailid;
+        const date = new Date(leadData.date);
+        document.getElementById('editDate').value = date.toISOString().split('T')[0]; // Format YYYY-MM-DD
+        document.getElementById('editTime').value = leadData.time; // Format HH:MM
+        
+    });
+
+    editForm.onsubmit = function(event) {
+        event.preventDefault();
+        const leadKey = document.getElementById('editLeadKey').value;
+        const newDate = document.getElementById('editDate').value;
+        const newTime = document.getElementById('editTime').value;
+
+        // Validation
+        const now = new Date();
+        const [year, month, day] = newDate.split('-').map(Number);
+        const [hour, minute] = newTime.split(':').map(Number);
+        const appointmentDate = new Date(year, month - 1, day, hour, minute);
+
+        // Validation pour la date
+        if (appointmentDate < now) {
+            alert('La date et l\'heure doivent être dans le futur.');
+            return;
+        }
+        // Validation pour l'heure
+        if (hour < 9 || hour >= 18) {
+            alert('L\'heure doit être entre 9h et 18h.');
+            return;
+        }
+
+        const updatedData = {
+            emailid: document.getElementById('editEmail').value,
+            time: newTime,
+            date: newDate,
+            
+        };
+
+        leadsRef.child(leadKey).update(updatedData).then(() => {
+            updateHistory(leadKey, 'Modifié');
+            editModal.style.display = 'none';
+            updateCalendar();
+        });
+    }
+
+    closeEdit.onclick = () => { editModal.style.display = 'none'; };
+    window.onclick = event => { if (event.target === editModal) editModal.style.display = 'none'; };
+}
+
+    
+    
+    
+    </script>
+    
+      
+   
+</body>
+</html>

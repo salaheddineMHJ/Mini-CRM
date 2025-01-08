@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statistiques des Projets</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .chart-container {
+      position: relative;
+      height: 400px;
+      width: 80%;
+      margin: auto;
+    }
+  </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+  <div class="container mt-4">
+    <h1 class="mb-4">Statistiques des Projets</h1>
+    
+    <div class="chart-container">
+      <canvas id="projectsChart"></canvas>
+    </div>
+
+    <nav class="mt-4">
+      <ul>
+        <a href="admin.html" class="btn btn-secondary">Retour</a>
+      </ul>
+    </nav>
+  </div>
+
+  <!-- Script Firebase, Chart.js et JS -->
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.14.1/firebase-database.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+  <script>
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7"
+    };
+
+    // Initialiser Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Fonction pour afficher les statistiques des projets
+    function displayProjectStatistics() {
+      const completedLeadsRef = database.ref('completedLeads');
+      const contactFormRef = database.ref('contactForm');
+
+      let completedCount = 0, notCompletedCount = 0;
+
+      // Compter les projets terminés
+      completedLeadsRef.once('value')
+        .then(snapshot => {
+          completedCount = snapshot.numChildren();
+
+          // Compter les projets non terminés
+          return contactFormRef.once('value');
+        })
+        .then(snapshot => {
+          notCompletedCount = snapshot.numChildren();
+
+          // Dessiner le graphique
+          const ctx = document.getElementById('projectsChart').getContext('2d');
+          new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: ['Projets Terminés', 'Projets Non Terminés'],
+              datasets: [{
+                label: 'Nombre de Projets',
+                data: [completedCount, notCompletedCount],
+                backgroundColor: ['rgba(75, 192, 192, 0.2)', 'rgba(255, 99, 132, 0.2)'],
+                borderColor: ['rgba(75, 192, 192, 1)', 'rgba(255, 99, 132, 1)'],
+                borderWidth: 2
+              }]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: 'Nombre de Projets'
+                  }
+                },
+                x: {
+                  title: {
+                    display: true,
+                    text: 'Statut'
+                  }
+                }
+              },
+              plugins: {
+                datalabels: {
+                  anchor: 'end',
+                  align: 'top',
+                  formatter: (value) => value,
+                  color: '#444'
+                }
+              }
+            }
+          });
+        })
+        .catch(error => {
+          console.error('Erreur lors de la récupération des données:', error);
+        });
+    }
+
+    // Appeler la fonction pour afficher les statistiques
+    displayProjectStatistics();
+  </script>
+</body>
+</html>
