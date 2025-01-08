@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prendre un Rendez-vous</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="styles.css">
+    
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="form-container">
+            <div class="text-center mb-4">
+                <h1>Prendre un Rendez-vous</h1>
+            </div>
+            <form action="" id="appointmentForm" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="appointmentDate">Date du Rendez-vous</label>
+                    <input type="text" class="form-control" id="appointmentDate" placeholder="Sélectionnez une date" required />
+                </div>
+                <div class="form-group">
+                    <label for="appointmentTime">Heure du Rendez-vous</label>
+                    <input type="time" class="form-control" id="appointmentTime" required />
+                </div>
+                <div class="form-group">
+                    <label for="appointmentDetails">Détails du Rendez-vous</label>
+                    <textarea id="appointmentDetails" class="form-control" cols="30" rows="5" placeholder="Détails du rendez-vous"></textarea>
+                </div>
+                
+                <div class="form-group text-center">
+                    <button type="submit" class="btn btn-primary">Envoyer</button>
+                </div>
+                <div class="form-group text-center">
+                    <button type="button" class="btn btn-secondary" onclick="goBack()">Retour au formulaire</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="./appointment.js"></script>
+    <script>
+        function goBack() {
+            window.location.href = 'index.html'; // Redirige vers la page du formulaire
+        }
+
+        // Initialisation de Flatpickr pour le champ de date
+        flatpickr("#appointmentDate", {
+            dateFormat: "Y-m-d",
+            minDate: "today"
+        });
+    </script>
+</body>
+
+</html>

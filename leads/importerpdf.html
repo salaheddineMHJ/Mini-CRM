@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Afficher les PDF</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    ul {
+      list-style-type: none;
+      padding: 0;
+    }
+    .file-item {
+      margin-bottom: 10px;
+    }
+    a {
+      text-decoration: none;
+      color: #007bff;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+  <!-- Importer les bibliothèques Firebase -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-app.js";
+    import { getStorage, ref as storageRef, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.21.0/firebase-storage.js";
+
+    // Configuration Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyABC6xWO7T4qxgVfD5MK2U-ReEPHh0quik",
+      authDomain: "leads-3892c.firebaseapp.com",
+      projectId: "leads-3892c",
+      storageBucket: "leads-3892c.appspot.com",
+      messagingSenderId: "1086480345958",
+      appId: "1:1086480345958:web:84bbb0fb5bd496edc836a7",
+      databaseURL: "https://leads-3892c-default-rtdb.firebaseio.com"
+    };
+
+    // Initialiser Firebase
+    const app = initializeApp(firebaseConfig);
+    const storage = getStorage(app);
+
+    // Fonction pour afficher les fichiers PDF
+    async function displayFiles() {
+      const fileList = document.getElementById('fileList');
+      const leadsRef = storageRef(storage, 'leads/');
+
+      try {
+        // Lister tous les fichiers dans le répertoire 'leads/'
+        const res = await listAll(leadsRef);
+
+        // Réinitialiser la liste
+        fileList.innerHTML = '';
+
+        // Pour chaque fichier trouvé, obtenir l'URL et créer un lien
+        for (const itemRef of res.items) {
+          const fileName = itemRef.name;
+
+          // Obtenir l'URL de téléchargement du fichier
+          const url = await getDownloadURL(itemRef);
+
+          // Créer un élément de liste pour chaque fichier
+          const fileItem = document.createElement('li');
+          fileItem.className = 'file-item';
+          fileItem.innerHTML = `<a href="${url}" target="_blank">${fileName}</a>`;
+          fileList.appendChild(fileItem);
+        }
+
+        if (res.items.length === 0) {
+          fileList.innerHTML = '<p>Aucun fichier trouvé.</p>';
+        }
+      } catch (error) {
+        console.error('Erreur lors de la récupération des fichiers :', error);
+        fileList.innerHTML = '<p>Une erreur est survenue lors de la récupération des fichiers.</p>';
+      }
+    }
+
+    // Appeler la fonction pour afficher les fichiers au chargement de la page
+    document.addEventListener('DOMContentLoaded', displayFiles);
+  </script>
+</head>
+<body>
+  <h1>Liste des Fichiers PDF</h1>
+  <ul id="fileList"></ul>
+</body>
+</html>
