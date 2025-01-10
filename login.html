@@ -12,11 +12,14 @@
             align-items: center;
             height: 100vh;
             background-color: #f8f9fa;
+            background-size: cover;
+            background-image: url(https://static.vecteezy.com/system/resources/thumbnails/029/592/352/small_2x/landscape-with-country-road-empty-asphalt-road-on-sunset-background-multicolor-vibrant-outdoors-horizontal-image-generative-ai-illustration-free-photo.jpg);
         }
         .login-container {
             max-width: 400px;
             width: 100%;
             padding: 20px;
+            margin: 40px;
             border: 1px solid #ddd;
             background-color: #fff;
             border-radius: 5px;
@@ -50,6 +53,29 @@
         </form>
     </div>
 
+    <!-- Séparation avec une marge -->
+    <div style="height: 30px;"></div> <!-- Espace entre les deux sections -->
+
+    <!-- Section Login Info séparée -->
+    <div class="login-container" style="padding-left: 20px; padding-right: 20px;">
+        <h2 class="text-center">Login Info</h2>
+        <p>admin<br>
+            admin@gmail.com<br>
+            password: admin</p>
+            <p>
+        membre:<br>
+        membre1@gmail.com<br>
+        password:membre1
+        </p>
+
+        <p>
+        client: <br>
+        simo@gmail.com<br>
+
+        hakim@gmail.com
+        </p>
+    </div>
+
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(event) {
             event.preventDefault();
@@ -68,4 +94,5 @@
         });
     </script>
 </body>
+
 </html>
