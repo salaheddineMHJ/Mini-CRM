@@ -1,6 +1,6 @@
 # Mini CRM for SMEs
 
-![Banner](media/image1.png)
+![Banner](media/image19.png)
 
 A mini Customer Relationship Management (CRM) system designed for small and medium enterprises (SMEs) to streamline lead management, appointment scheduling, and team collaboration. Developed as a final-year project by students at EMSI (École Marocaine des Sciences de l'Ingénieur).
 
@@ -42,9 +42,9 @@ A mini Customer Relationship Management (CRM) system designed for small and medi
    ...
 
 ## Screenshots 📸
-| Members Profile          | Calendar View                | Notifications Profile      |
+|  Admin Profile          | Members Profile                | Notifications Profile      |
 |--------------------------|------------------------------|-----------------------------|
-| <img src="media/image13.png" alt="Members" width="300" height="200"> | <img src="media/image19.png" alt="Calendar" width="300" height="200"> | <img src="media/image23.png" alt="Notifications" width="300" height="200"> |
+| <img src="media/image1.png" alt="Members" width="300" height="200"> | <img src="media/image13.png" alt="Calendar" width="300" height="200"> | <img src="media/image23.png" alt="Notifications" width="300" height="200"> |
 
 ## Contributors 👥
 - **Salaheddine AIT EL MAHJOUB**  
