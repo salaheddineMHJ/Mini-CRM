@@ -42,13 +42,11 @@ A mini Customer Relationship Management (CRM) system designed for small and medi
    ...
 
 ## Screenshots 📸
-| Members Profile       | Calendar View               | Leads      Profile         |
-|---------------------------|-----------------------------|-----------------------------|
-| ![Leads](media/image13.png) | ![Calendar](media/image19.png) | ![Notifications](media/image23.png) |
+| Members Profile          | Calendar View                | Notifications Profile      |
+|--------------------------|------------------------------|-----------------------------|
+| <img src="media/image13.png" alt="Members" width="300" height="200"> | <img src="media/image19.png" alt="Calendar" width="300" height="200"> | <img src="media/image23.png" alt="Notifications" width="300" height="200"> |
 
 ## Contributors 👥
-- **Mohamed HASSANAIN**  
-  [![GitHub](https://img.shields.io/badge/GitHub-Profile-blue)](https://github.com/mhassanain)
 - **Salaheddine AIT EL MAHJOUB**  
   [![GitHub](https://img.shields.io/badge/GitHub-Profile-blue)](https://github.com/saitelmahjoub)
 
